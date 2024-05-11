@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -9,85 +10,42 @@ use App\Http\Resources\user as UserResource;
 
 class usercontroller extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function __construct()
+
+    public function update(UpdateUserRequest $request, $id)
     {
-             $this->middleware('auth:api')->except('index');
+        // Find the user by their ID
+        $user = User::findOrFail($id);
+    
+        // Check if the current user is authorized to update this user
+        $this->authorize('update', $user);
+    
+        // Update the user with the validated data from the request
+        $user->update($request->validated());
+    
+        // Return a JSON response with the updated user and a success message
+        return response()->json([
+            'user' => new UserResource($user), // Convert the user to a resource for formatting
+            'message' => 'User updated successfully'
+        ], 200);
     }
     
-    public function index(Request $request)
+
+
+    public function destroy($id)
     {
-        $limit = $request->input('limit')<= 38? $request->input('limit') : 10 ;
-        $users=  UserResource::collection(User::paginate($limit));
-        return $users->response()->setStatusCode(200,'Users returned successfully');
-    }
-
-
-    public function show( $id)
-    {
-        $user = new UserResource( User::findorFail($id));
-        return $user->response()->setStatusCode(200, 'User returned successfully');
-    }
-
-    public function store(Request $request)
-    {
-        $this->authorize('create',User::class);
-   
-       
-
+        // Find the user by their ID
+        $user = User::findOrFail($id);
     
+        // Check if the current user is authorized to delete this user
+        $this->authorize('delete', $user);
     
-      $user=  new UserResource(User::create([
-        'name'=> $request->name,
-        'email'=> $request->email,
-        'password'=> Hash::make($request->password)
-       ]));
-       
-    return $user->response();
+        // Delete the user from the database
+        $user->delete();
     
-    
-    
+        // Return a JSON response indicating successful deletion
+        return response()->json(['message' => 'User deleted'], 200);
     }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request,  $id)
-    {
-        $iduser= User::findorFail($id);
-        $this->authorize('update', $iduser);
-    //     $data=request()->validate
-    //     ([
-    //     'name'=>'required',
-    //     'email'=>'required|email',
-    //    ]);
-        $user = new UserResource( User::findorFail($id));
-         $user->update($request->all());
-         return $user->response()->setStatusCode(200, 'User updated successfully');
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy( $id ) 
-    {
-        $iduser=User::findOrFail($id);
-        $this->authorize('delete',$iduser);
-        $user=User::findOrFail($id);
-        $user->delete();   
-        return response(['message' => 'user deleted'],200);
-
-     }
+    
 
 
 }

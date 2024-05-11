@@ -2,90 +2,75 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreplaceRequest;
+use App\Http\Requests\UpdateplaceRequest;
 use App\Models\place;
-
 use Illuminate\Http\Request ;
 use App\Http\Resources\place as PlaceResource;
 
 class PlaceController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-
-     public function __construct()
-     {
-      
-        $this->middleware('auth:api')->except('index');     }
 
     public function index(Request $request)
     {
         // $limit = $request->input('limit')<= 7? $request->input('limit') : 2 ;
-        $places =  PlaceResource::collection(place::paginate(1));
-        return $places->response()->setStatusCode(200,'places returned successfully');
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {//
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        $this->authorize('create',place::class);
-        $data=request()->validate(['name' => 'required']);
-
-       $place = new PlaceResource(place::create($data));
-
-       return $place->response()->setStatusCode(200,'place created successfully');
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show( $id)
-    {
-        $place = new PlaceResource(place::findOrFail($id));
-        return $place->response()->setStatusCode(200,'place returned successfully');
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(place $place)
-    {
+        return response()->json([
+            'places' => PlaceResource::collection(place::paginate(1)), // Retrieve places and format them using PlaceResource
+            'message' => 'Places returned successfully' // Success message
+        ], 200);
         
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request,  $id)
+    public function store(StoreplaceRequest $request)
     {
-        $this->authorize('update',place::class);
+        // Authorize the creation of a new place
+        $this->authorize('create',place::class);
 
-        $data=request()->validate(['name' => 'required']);
+        // Return a JSON response with the created place and a success message
+       return response()->json(['place' => new PlaceResource(place::create($request->validated())) ,
+                                'message' => 'place created successfully'
+                            ],200);
+    
+    }
 
-        $place=new PlaceResource(place::findOrFail($id));
-         $place->update($request->all());
-         return $place->response()->setStatusCode(200,'place updated ');
-        }
+    public function show( $id)
+    {
+               // Return a JSON response with the found place and a success message
+                return response()->json(['place' => new PlaceResource(place::findOrFail($id)),
+                'message' => 'place returned successfully'],200);
+    }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    public function update(UpdateplaceRequest $request, $id)
+{
+    // Authorize the update action for places
+    $this->authorize('update', place::class);
+
+    // Find the place by its ID and wrap it in a PlaceResource
+    $place = new PlaceResource(place::findOrFail($id));
+
+    // Update the place with the validated data from the request
+    $place->update($request->validated());
+
+    // Return a JSON response with the updated place and a success message
+    return response()->json([
+        'The place' => $place, 
+        'message' => 'Place updated successfully' 
+    ], 200);
+}
+
+
     public function destroy($id)
     {
-        $this->authorize('delete',place::class);
-
-        $place=place::findOrFail($id);
-        $place->delete();
-       return response(['message' => 'place deleted'])->setStatusCode(200,'place deleted successfully');
-
+        // Authorize the delete action for places
+        $this->authorize('delete', place::class);
+    
+        // Find the place by its ID and delete it
+        place::findOrFail($id)->delete();
+    
+        // Return a JSON response indicating successful deletion
+        return response()->json([
+            'message' => 'Place deleted successfully' 
+        ], 200);
     }
+    
 }

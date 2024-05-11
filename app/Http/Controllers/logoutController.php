@@ -11,20 +11,18 @@ use Illuminate\Support\Facades\Validator;
 
 class logoutController extends Controller
 {
-  public function __construct()
-  {
-   
-      $this->middleware('auth:api');
-  }
+
 
     public function logout(Request $request)
     {
-      
+      // Deleting all tokens associated with the authenticated user
+       $request->user()->tokens()->delete();
 
-      $token = $request->user()->tokens();
-      $token->delete();
-      $response = ['message' => 'You have been successfully logged out'];
-      return response($response,200);
+      // Returning a JSON response with a success message
+            return response()->json([
+                 'message' => 'You have been successfully logged out' // Success message
+                            ], 200);
+
 
     }
 }

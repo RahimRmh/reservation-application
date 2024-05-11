@@ -2,50 +2,46 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\User;
+use App\Http\Requests\RegisterRequest;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Passport\Passport;
 use Laravel\Passport\HasApiTokens;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\VerificationCodeMail;
+use Illuminate\Support\Str;
+
 use App\Http\Resources\user as UserResource;
-
-
 
 class RegisterController extends Controller
 {
-    // public function __construct()
-    // {
-     
-    //     $this->middleware('auth.basic.once');
-    // }
-    public function Register(Request $request)
-    {
-  
-   
-        $validator=validator::make($request->all(),
-        [
-            'name'=> 'required|min:4|unique:users',
-            'email'=> 'required|email|unique:users',
-            'password' => 'required|min:6'
-        ]);
 
-    if($validator->fails()){
-        return response([$validator->errors()],422);
+    public function register(RegisterRequest $request)
+    {
+        // Validate incoming request data
+        $validatedData = $request->validated();
+
+        // Hash the password before saving it to the database for security
+         $validatedData['password'] = Hash::make($validatedData['password']);
+
+         $validatedData['verification_code'] =  Str::random(6) ;
+        // Create a new user in the database 
+        $user = User::create($validatedData);
+
+        // Mail::to($user->email)->send(new VerificationCodeMail($user));
+
+    
+        // Create an access token for the user
+        $accessToken = $user->createToken('Access Token')->accessToken;
+    
+        // Return a JSON response with the user data and access token
+        return response()->json([
+            'user' => new UserResource($user),
+            'access_token' => $accessToken,
+            'message' => 'User registered successfully' // Add a message to indicate successful registration
+        ], 200);
     }
     
-      $user=  new UserResource(User::create([
-        'name'=> $request['name'],
-        'email'=> $request['email'],
-        'password'=> Hash::make($request['password'])
-       ]));
-       $Accesstoken=$user->createToken('Access Token')->accessToken;
-       return response(['user'=>$user,
-        'Access Token'=>$Accesstoken]);
-    
-    
-    
-    }
 }

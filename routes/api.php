@@ -22,16 +22,14 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-//     return $request->user();
-// });
-Route::resource('places',PlaceController::class);
+
+Route::middleware('auth:api')->group(function(){
+Route::resource('places',PlaceController::class)->except('index');
 Route::resource('resturants',ResturantController::class);
 Route::resource('user',usercontroller::class); 
 Route::resource('reservations',ReservationController::class); 
-Route::get('places/{id}/resturants',[relationcontroller::class,'PlaceResturants']);
-Route::get('resturants/{id}/place',[relationcontroller::class,'ResturantsPlace']);
-Route::post('login',[LoginController::class,'login'])->name('login');
 Route::post('logout',[logoutController::class,'logout']);
+Route::get('places/{placeId}/resturants',[ResturantController::class,'ResturantsAccordingToPlace']);
+});
+Route::post('login',[LoginController::class,'login'])->name('login');
 Route::post('register',[RegisterController::class,'Register']);
-Route::get('index1',[ResturantController::class,'index1']);

@@ -6,105 +6,102 @@ use App\Models\resturant;
 use App\Http\Requests\StoreresturantRequest;
 use App\Http\Requests\UpdateresturantRequest;
 use App\Http\Resources\resturant as ResturantResource;
+use App\Models\place;
 use Illuminate\Http\Request;
 
 class ResturantController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    
 
      public function __construct()
      {
         $this->middleware('auth:api')->except('index');     }
 
-    public function index(Request $request)
+    public function index()
     {
-        $limit = $request->input('limit')<= 20? $request->input('limit') : 10 ;
-        $resturants =  ResturantResource::collection(resturant::paginate($limit));
-        return $resturants->response()->setStatusCode(200,'Resturants returned successfully');
+        // Returning JSON response with restaurants and a success message
+        return response()->json([
+            'resturants' => ResturantResource::collection(resturant::paginate(10)), 
+            'message' => 'Resturants returned successfully'
+         ],200);
+
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
+  
+    public function store(StoreresturantRequest $request)
+    {   
+         // Authorize the request to ensure the user has permission to create a restaurant.
         $this->authorize('create',resturant::class);
-        $data = request()->validate([
-            'name'=>'required',
-            'description'=>'required',
-            'address'=>'required',
-            'email'=>'required|email',
-            'place_id'=> 'integer|required'
 
-                                     ]);
-        $resturant = new ResturantResource(resturant::create($data));
-        return $resturant->response()->setStatusCode(200,'Resturant created successfully');
+          // Return a JSON response with the newly created restaurant and a success message.
+        return response()->json([
+            'resturant' => new ResturantResource(resturant::create($request->validated())), 
+            'message' => 'Resturant created successfully'
+         ],200);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show( $id )
     {
+
+        return response()->json([
+            'resturant' => new ResturantResource(resturant::findorFail($id)), // Retrieve the restaurant by its ID
+            'message' => 'Restaurant returned successfully' // Provide a success message
+        ], 200);
+        
+        
+    }
+
+
+    public function update(UpdateresturantRequest $request, $id)
+    {
+       // Authorize the request to ensure the user has permission to update a restaurant.
+       $this->authorize('update', Resturant::class);
+
+       // Retrieve the restaurant by its ID and create a new resource instance.
         $resturant = new ResturantResource(resturant::findorFail($id));
-        return $resturant->response()->setStatusCode(200,'Resturant returned successfully');
+
+        // Update the restaurant using the validated data from the request.
+        $resturant->update($request->validated());
+
+      // Return a JSON response with the updated restaurant and a success message.
+          return response()->json([
+          'resturant' => $resturant,
+        'message' => 'Restaurant updated successfully'
+                      ], 200);
+
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(resturant $resturant)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, $id)
-    {
-        $this->authorize('update',resturant::class);
-
-       
-       $resturant = new ResturantResource(resturant::findorFail($id));
-
-       $resturant->update($request->all());
-
-        return $resturant->response()->setStatusCode(200,'Resturant Updated successfully');
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
+  
     public function destroy( $id)
-    {
-        $this->authorize('delete',resturant::class);
+    {           
+                // Authorize the request to ensure the user has permission to delete a restaurant.
+                $this->authorize('delete', Resturant::class);
 
-        $resturant=resturant::findOrFail($id);
-         $resturant->delete();    
-        return response(['message' => 'resturant deleted'])->setStatusCode(200,'resturant deleted successfully');
+                 // Find the restaurant by its ID and delete it.
+                resturant::findOrFail($id)->delete();
+
+                // Return a JSON response with a success message.
+               return response()->json(['message' => 'Restaurant deleted successfully'], 200);
+
+          
     }
 
-    public function index1(Request $request){
-        $data = request()->validate([
-            'place_id'=> 'integer|required'
-]);
-  $resturants =ResturantResource::collection(resturant::where('place_id',$data['place_id'])->get());
-  return $resturants->response()->setStatusCode(200,'Resturants returned successfully');
+    public function ResturantsAccordingToPlace($placeId)
+    {
+        // Find the place by its ID.
+        $place = place::find($placeId);
+    
+        // Return a JSON response with the restaurants directly.
+        return response()->json([
+            'resturants' => ResturantResource::collection($place->resturants()->get()),
+            'message' => 'Restaurants returned successfully'
+        ], 200);
+    }
+    
 
                                      
               
                                      
 
     }
-}
+

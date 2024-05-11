@@ -16,6 +16,8 @@ class user extends JsonResource
         return [
             'Full Name' => $this->name,
             'E-Mail' => $this->email,
+            'Phone Number' => $this->phone_number,
+            'Role' => $this->role,
         ];
     }
 }
