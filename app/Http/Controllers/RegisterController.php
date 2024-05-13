@@ -26,11 +26,11 @@ class RegisterController extends Controller
         // Hash the password before saving it to the database for security
          $validatedData['password'] = Hash::make($validatedData['password']);
 
-         $validatedData['verification_code'] =  Str::random(6) ;
+         $validatedData['verification_code'] =  mt_rand(100000, 999999) ;
         // Create a new user in the database 
         $user = User::create($validatedData);
 
-        // Mail::to($user->email)->send(new VerificationCodeMail($user));
+        Mail::to($user->email)->send(new VerificationCodeMail($user));
 
     
         // Create an access token for the user

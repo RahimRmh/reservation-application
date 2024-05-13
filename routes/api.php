@@ -8,6 +8,7 @@ use App\Http\Controllers\relationcontroller;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\ResturantController;
 use App\Http\Controllers\usercontroller;
+use App\Http\Controllers\VerifyController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -33,3 +34,4 @@ Route::get('places/{placeId}/resturants',[ResturantController::class,'Resturants
 });
 Route::post('login',[LoginController::class,'login'])->name('login');
 Route::post('register',[RegisterController::class,'Register']);
+Route::post('verification',[VerifyController::class,'verify']);

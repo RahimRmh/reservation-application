@@ -42,22 +42,22 @@ class VerificationCodeMail extends Mailable
     //     );
     // }
 
-    // /**
-    //  * Get the attachments for the message.
-    //  *
-    //  * @return array<int, \Illuminate\Mail\Mailables\Attachment>
-    //  */
+    /**
+     * Get the attachments for the message.
+     *
+     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
+     */
     // public function attachments(): array
     // {
     //     return [];
     // }
 
-    // public function build()
-    // {
-    //     return $this->view('verification_code')
-    //                 ->with([
-    //                     'verification_code' => $this->user->verification_code,
-    //                 ]);
-    // }
+    public function build()
+    {
+        return $this->view('verification_code')
+                    ->with([
+                        'verification_code' => $this->user->verification_code,
+                    ]);
+    }
 }
 
